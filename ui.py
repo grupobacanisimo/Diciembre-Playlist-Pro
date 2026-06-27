@@ -3,7 +3,6 @@ from PySide6.QtWidgets import (
     QPushButton, QFileDialog, QListWidget, QLabel,
     QLineEdit, QSpinBox, QMessageBox
 )
-
 import sys
 from generator import PlaylistGenerator
 
@@ -12,31 +11,29 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Diciembre Playlist Pro")
-        self.setGeometry(200, 200, 600, 500)
+        self.setWindowTitle("Diciembre Playlist Pro v2")
+        self.setGeometry(200, 200, 650, 500)
 
         self.folders = {}
-        self.sequence = []
-
-        self.generator = PlaylistGenerator({})
+        self.generator = PlaylistGenerator()
 
         self.init_ui()
 
     def init_ui(self):
         layout = QVBoxLayout()
 
-        self.label = QLabel("Diciembre Playlist Pro")
-        layout.addWidget(self.label)
+        self.title = QLabel("🎵 Diciembre Playlist Pro v2")
+        layout.addWidget(self.title)
 
         self.list_folders = QListWidget()
         layout.addWidget(self.list_folders)
 
-        self.btn_add_folder = QPushButton("Agregar carpeta")
-        self.btn_add_folder.clicked.connect(self.add_folder)
-        layout.addWidget(self.btn_add_folder)
+        self.btn_add = QPushButton("Agregar carpeta")
+        self.btn_add.clicked.connect(self.add_folder)
+        layout.addWidget(self.btn_add)
 
         self.sequence_input = QLineEdit()
-        self.sequence_input.setPlaceholderText("Ej: Parranda,Parranda,ID,Tropical")
+        self.sequence_input.setPlaceholderText("Ej: Parranda,Parranda,ID,Tropical,Promo")
         layout.addWidget(self.sequence_input)
 
         self.total_items = QSpinBox()
@@ -60,31 +57,35 @@ class MainWindow(QMainWindow):
             self.list_folders.addItem(f"{name} -> {folder}")
 
     def generate(self):
-        sequence = [x.strip() for x in self.sequence_input.text().split(",") if x.strip()]
+        try:
+            sequence = [x.strip() for x in self.sequence_input.text().split(",") if x.strip()]
 
-        if not sequence:
-            QMessageBox.warning(self, "Error", "Debes ingresar una secuencia")
-            return
+            if not sequence:
+                QMessageBox.warning(self, "Error", "Debes ingresar una secuencia")
+                return
 
-        output_file = QFileDialog.getSaveFileName(
-            self, "Guardar playlist", "", "M3U Files (*.m3u)"
-        )[0]
+            output_file = QFileDialog.getSaveFileName(
+                self, "Guardar playlist", "", "M3U Files (*.m3u)"
+            )[0]
 
-        if not output_file:
-            return
+            if not output_file:
+                return
 
-        playlist = self.generator.generate(
-            sequence,
-            self.folders,
-            output_file,
-            self.total_items.value()
-        )
+            playlist = self.generator.generate(
+                sequence,
+                self.folders,
+                output_file,
+                self.total_items.value()
+            )
 
-        QMessageBox.information(
-            self,
-            "Listo",
-            f"Playlist creada con {len(playlist)} canciones"
-        )
+            QMessageBox.information(
+                self,
+                "Listo",
+                f"Playlist creada con {len(playlist)} canciones"
+            )
+
+        except Exception as e:
+            QMessageBox.critical(self, "Error", str(e))
 
 
 def run():
@@ -92,7 +93,3 @@ def run():
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
-
-
-if __name__ == "__main__":
-    run()
